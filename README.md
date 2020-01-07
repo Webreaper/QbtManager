@@ -11,8 +11,7 @@ Note - you will need to ensure auth is disabled for localhost etc. for QBitorrre
 3. Run, in a script or cron job. 
 
 ## Settings.json format/sample:
-
-{
+`{
   "qbt": {
     "username": "admin",
     "url": "http://192.168.1.30:8090/api/v2"
@@ -37,4 +36,4 @@ Note - you will need to ensure auth is disabled for localhost etc. for QBitorrre
     "fromaddress": "sender@example.com",
     "toname": "QBT Notifier"
   }
-}
+}`
