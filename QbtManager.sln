@@ -1,0 +1,17 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+Project("{5443830a-8922-4a66-8262-57c0c7ba860f}") = "QbtManager", "QbtManager\QbtManager.csproj", "{5866166b-9ae5-4079-8050-66becf2ad81a}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5866166b-9ae5-4079-8050-66becf2ad81a}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5866166b-9ae5-4079-8050-66becf2ad81a}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5866166b-9ae5-4079-8050-66becf2ad81a}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5866166b-9ae5-4079-8050-66becf2ad81a}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
