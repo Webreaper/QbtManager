@@ -1,2 +1,2 @@
 # QbtManager
- RSS reader and torrent cleanup for QBitTorrent
+ QBitTorrent Manager for clearing up jobs and processing RSS
