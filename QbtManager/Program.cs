@@ -16,15 +16,22 @@ namespace QbtManager
         {
             bool keepTracker = false;
 
-            if (settings.trackersToKeep.Any(t => task.tracker.ToLower().Contains(t)))
-                keepTracker = true;
+            if (settings.trackersToKeep.Any())
+            {
+                // Allow wildcard ("keep all trackers")
+                if (settings.trackersToKeep.Any(x => x == "* "))
+                    keepTracker = true;
 
-            if (settings.trackersToKeep.Any(t => task.magnet_uri.ToLower().Contains(t)))
-                keepTracker = true;
+                if (settings.trackersToKeep.Any(t => task.tracker.ToLower().Contains(t)))
+                    keepTracker = true;
 
-            // No tracker? Give it the benefit of the doubt.
-            if (! keepTracker && string.IsNullOrEmpty(task.tracker))
-                keepTracker = true;
+                if (settings.trackersToKeep.Any(t => task.magnet_uri.ToLower().Contains(t)))
+                    keepTracker = true;
+
+                // No tracker? Give it the benefit of the doubt.
+                if (!keepTracker && string.IsNullOrEmpty(task.tracker))
+                    keepTracker = true;
+            }
 
             return keepTracker;
         }
@@ -114,9 +121,11 @@ namespace QbtManager
                                        .OrderBy(x => x.name)
                                        .ToList();
 
-                    CleanUpTorrents(service, tasks, settings);
+                    if( settings.cleanup != null )
+                        CleanUpTorrents(service, tasks, settings);
 
-                    ReadRSSFeeds(service, settings.rss);
+                    if( settings.rss != null )
+                        ReadRSSFeeds(service, settings.rss);
                 }
                 else
                     Utils.Log("Login failed.");
