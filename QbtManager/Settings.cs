@@ -5,25 +5,6 @@ using System.Runtime.Serialization;
 namespace QbtManager
 {
     [DataContract]
-    public class EmailSettings
-    {
-        [DataMember]
-        public string smtpserver { get; set; }
-        [DataMember]
-        public int smtpport { get; set;  }
-        [DataMember]
-        public string username { get; set; }
-        [DataMember]
-        public string password { get; set; }
-        [DataMember]
-        public string toaddress { get; set; }
-        [DataMember]    
-        public string fromaddress { get; set; }
-        [DataMember]
-        public string toname { get; set; }
-    }
-
-    [DataContract]
     public class QBittorrentSettings
     {
         [DataMember]
@@ -63,8 +44,6 @@ namespace QbtManager
         public TorrentCleanupSettings cleanup { get; set; }
         [DataMember]
         public RSSSettings rss { get; set; }
-        [DataMember]
-        public EmailSettings email { get; set; }
         [DataMember]
         public string logLocation { get; set; }
     }
