@@ -26,14 +26,5 @@ Note - you will need to ensure auth is disabled for localhost etc. for QBitorrre
     "rssUrls": [
       "https://sometracker.com/rss"
     ]
-  },
-  "email": {
-    "smtpserver": "mail.mailhost.com",
-    "smtpport": 465,
-    "username": "user",
-    "password": "passwd",
-    "toaddress": "recipient@example.com",
-    "fromaddress": "sender@example.com",
-    "toname": "QBT Notifier"
   }
 }`
