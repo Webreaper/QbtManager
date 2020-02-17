@@ -21,13 +21,13 @@ Note - you will need to ensure auth is disabled for localhost etc. for QBitorrre
     "trackers": [
       {
         "tracker":"tvchaos",
-        "maxDaysToKeep" : -1,
+        "maxDaysToKeep" : 365,
         "up_limit" : -1
       },   
       {
         "tracker":"*",
-        "maxDaysToKeep" : 0,
-        "up_limit" : -1
+        "maxDaysToKeep" : 1,
+        "up_limit" : 30
       }      
     ],
     "rssfeeds": [
