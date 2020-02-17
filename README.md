@@ -1,6 +1,7 @@
 # QbtManager
- QBitTorrent Manager for clearing up jobs and processing RSS. It has two aims:
- * Pause any completed torrents unless their Magnet URL/Tracker info contains specific keywords specified in the trackersToKeep settings section. This allows you to stop torrents on most trackers when they complete, but keep torrents seeding on private trackers with certain ratios etc.
+ QBitTorrent Manager for clearing up jobs and processing RSS. It has several aims:
+ * Pause any completed torrents unless their tracker is listed in the settings, and the tracker is listed in the settings. This allows you to stop torrents on most trackers when they complete, but keep torrents seeding on private trackers with certain ratios etc.
+ * Adjust other torrent properties on a per-tracker basis, including upload limit and other parameters.
  * Do RSS for server-based (linux) QBitTorrent. QBT handles RSS on Windows, but not on Linux. So this will take a list of RSS URLs, and download all new torrents that are listed in them. Note that it will create a downloadhistory.json file to track snatched torrents so they're not repeatedly downloaded and added to QBT.
  
 Note - you will need to ensure auth is disabled for localhost etc. for QBitorrrent.
@@ -26,7 +27,7 @@ Note - you will need to ensure auth is disabled for localhost etc. for QBitorrre
       },   
       {
         "tracker":"*",
-        "maxDaysToKeep" : 1,
+        "maxDaysToKeep" : 0,
         "up_limit" : 30
       }      
     ],
