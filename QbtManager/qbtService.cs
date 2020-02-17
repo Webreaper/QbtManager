@@ -17,15 +17,18 @@ namespace QbtManager
             public string hash { get; set; }  
             public string category { get; set; }  
             public string name { get; set; }
+            public string tracker { get; set; }
             public string magnet_uri { get; set; }
             public string state { get; set; }
-            public string tracker { get; set; }
+            public int up_limit { get; set; }
             public DateTime added_on { get; set; }
             public DateTime completed_on { get; set; }
 
             public override string ToString()
 			{
-				return string.Format("{0:dd-MMM-yyyy}: {1} [{2}]", added_on, name,tracker);
+                var age = DateTime.Now - added_on;
+                string span = "(" + state + ", " + age.ToHumanReadableString() + ")";
+                return $" * {name} {span}";
 			}
 		}
 
@@ -105,6 +108,25 @@ namespace QbtManager
 
             parms["hashes"] = string.Join("|", taskIds);
             return ExecuteRequest("/torrents/pause", parms);
+        }
+
+        /// <summary>
+        /// Sets the upload limit for a list of hashes
+        /// </summary>
+        /// <param name="taskIds"></param>
+        /// <param name="limitKiloBytesPerSec">Upload limit in KB/s</param>
+        /// <returns></returns>
+        public bool SetUploadLimit(string[] taskIds, int limitKiloBytesPerSec)
+        {
+            var parms = new Dictionary<string, string>();
+
+            // Convert from KB to bytes, for the service
+            int limitBytesPerSec = limitKiloBytesPerSec * 1024;
+
+            parms["hashes"] = string.Join("|", taskIds);
+            parms["limit"] = limitBytesPerSec.ToString();
+
+            return ExecuteCommand("/torrents/setUploadLimit", parms);
         }
 
         public bool ExecuteRequest( string requestMethod, IDictionary<string, string> parms )

@@ -12,34 +12,33 @@ namespace QbtManager
 {
     public class MainClass
     {
-        protected static bool KeepTracker(Torrent task, TorrentCleanupSettings settings)
+        /// <summary>
+        /// Given a task, see which tracker in the settings matches it.
+        /// </summary>
+        /// <param name="task"></param>
+        /// <param name="settings"></param>
+        /// <returns></returns>
+        protected static Tracker FindTaskTracker(Torrent task, Settings settings)
         {
-            bool keepTracker = false;
+            Tracker tracker = null;
 
-            if (settings.trackersToKeep.Any())
-            {
-                // Allow wildcard ("keep all trackers")
-                if (settings.trackersToKeep.Any(x => x == "* "))
-                    keepTracker = true;
 
-                if (settings.trackersToKeep.Any(t => task.tracker.ToLower().Contains(t)))
-                    keepTracker = true;
+            if (tracker == null)
+                tracker = settings.trackers.FirstOrDefault(x => task.magnet_uri.ToLower().Contains(x.tracker));
 
-                if (settings.trackersToKeep.Any(t => task.magnet_uri.ToLower().Contains(t)))
-                    keepTracker = true;
+            if (tracker == null)
+                tracker = settings.trackers.FirstOrDefault(t => task.tracker.ToLower().Contains(t.tracker));
 
-                // No tracker? Give it the benefit of the doubt.
-                if (!keepTracker && string.IsNullOrEmpty(task.tracker))
-                    keepTracker = true;
-            }
+            // Allow wildcard ("keep all trackers")
+            if( tracker == null )
+                tracker = settings.trackers.FirstOrDefault(x => x.tracker == "*");
 
-            return keepTracker;
+            return tracker;
         }
 
         private static readonly List<string> downloadedStates = new List<string> { "uploading", "pausedUP", "queuedUP", "stalledUP", "checkingUP", "forcedUP" };
-        private ServerCertificateValidation certValidation = new ServerCertificateValidation();
 
-        protected static bool isDeletable(Torrent task, TorrentCleanupSettings settings)
+        protected static bool IsDeletable( Torrent task, Tracker tracker )
         {
             bool canDelete = false;
 
@@ -47,12 +46,12 @@ namespace QbtManager
             {
                 canDelete = true;
 
-                if (KeepTracker(task, settings))
+                if( tracker != null )
                 {
                     // If the torrent is > 90 days old, delete
                     var age = DateTime.Now - task.added_on;
 
-                    if (age.TotalDays < settings.maxDaysToKeep)
+                    if (tracker.maxDaysToKeep == -1 || age.TotalDays < tracker.maxDaysToKeep)
                         canDelete = false;
                     else
                         Utils.Log("Task {0} deleted - too old", task.name);
@@ -65,27 +64,7 @@ namespace QbtManager
             return canDelete;
         }
 
-        public static string ToHumanReadableString(TimeSpan t)
-        {
-            if (t.TotalSeconds <= 1)
-            {
-                return $@"{t:s\.ff} seconds";
-            }
-            if (t.TotalMinutes <= 1)
-            {
-                return $@"{t:%s} seconds";
-            }
-            if (t.TotalHours <= 1)
-            {
-                return $@"{t:%m} minutes";
-            }
-            if (t.TotalDays <= 1)
-            {
-                return $@"{t:%h} hours";
-            }
 
-            return $@"{t:%d} days";
-        }
 
         public static void Main(string[] args)
         {
@@ -110,22 +89,19 @@ namespace QbtManager
 
                 qbtService service = new qbtService(settings.qbt);
 
-                Utils.Log("Tasks will be kept for trackers: {0}", string.Join(", ", settings.cleanup.trackersToKeep));
-                Utils.Log("Tracker-held tasks will be deleted after {0} days.", settings.cleanup.maxDaysToKeep);
                 Utils.Log("Signing in to QBittorrent.");
 
                 if (service.SignIn())
                 {
-                    Utils.Log("Getting Seeding Task list...");
+                    Utils.Log("Getting Seeding Task list and mapping trackers...");
                     var tasks = service.GetTasks()
                                        .OrderBy(x => x.name)
                                        .ToList();
 
-                    if( settings.cleanup != null )
-                        CleanUpTorrents(service, tasks, settings);
+                    ProcessTorrents(service, tasks, settings);
 
-                    if( settings.rss != null )
-                        ReadRSSFeeds(service, settings.rss);
+                    if( settings.rssfeeds != null )
+                        ReadRSSFeeds(service, settings.rssfeeds);
                 }
                 else
                     Utils.Log("Login failed.");
@@ -136,76 +112,94 @@ namespace QbtManager
             }
         }
 
-        private static void CleanUpTorrents(qbtService service, IList<Torrent> tasks, Settings settings )
+        private static void ProcessTorrents(qbtService service, IList<Torrent> tasks, Settings settings )
         {
-            Utils.Log("Cleaning up torrent list...");
+            Utils.Log("Processing torrent list...");
 
-            var tasksToDelete = tasks.Where(x => isDeletable(x, settings.cleanup))
-                                     .OrderBy(x => x.added_on)
-                                     .ToList();
+            var toKeep = new List<Torrent>();
+            var toDelete = new List<Torrent>();
+            var limits = new Dictionary<Torrent, int>();
 
-            var tasksToKeep = tasks.Except(tasksToDelete)
-                                   .OrderBy(x => x.added_on)
-                                   .ToList();
-
-            if (tasksToKeep.Any())
+            foreach( var task in tasks )
             {
-                Utils.Log("Tasks to Keep:");
-                foreach (var task in tasksToKeep)
+                var tracker = FindTaskTracker(task, settings);
+
+                if (tracker != null)
                 {
-                    string span = "(" + task.state + ", " + ToHumanReadableString(DateTime.Now - task.added_on) + ")";
-                    Utils.Log($" * {task.name} {span}");
+                    if (IsDeletable(task, tracker))
+                    {
+                        toDelete.Add(task);
+                        Utils.Log($" - Delete: {task}");
+                    }
+                    else
+                    {
+                        toKeep.Add(task);
+                        Utils.Log($" - Keep: {task}");
+
+                        if (tracker.up_limit.HasValue && task.up_limit != tracker.up_limit)
+                        {
+                            limits[task] = tracker.up_limit.Value;
+                        }
+                    }
                 }
             }
 
-            if (tasksToDelete.Any())
+            if (limits.Any())
             {
-                var deleteTasks = new List<Torrent>();
+                var limitGroups = limits.GroupBy(x => x.Value, y => y.Key);
 
-                Utils.Log("Tasks to delete:");
-                foreach (var task in tasksToDelete)
+                foreach (var x in limitGroups )
                 {
-                    Utils.Log($" - {task.name}");
-                    deleteTasks.Add(task);
+                    int limit = x.Key;
+                    var hashes = x.Select(t => t.hash).ToArray();
+
+                    if (!service.SetUploadLimit(hashes, limit))
+                        Utils.Log($"Failed to set upload limits.");
                 }
+            }
 
-                if (deleteTasks.Any())
+            if (toDelete.Any())
+            {
+                Utils.Log("Tasks to delete:");
+                var deleteHashes = toDelete.Select(x => x.hash).ToArray();
+
+                if (settings.deleteTasks)
+                    service.DeleteTask(deleteHashes);
+                else
+                    service.PauseTask(deleteHashes);
+
+                if (settings.email != null)
                 {
-                    var deleteHashes = deleteTasks.Select(x => x.hash).ToArray();
-                    if (settings.cleanup.deleteTasks)
-                        service.DeleteTask(deleteHashes);
-                    else
-                        service.PauseTask(deleteHashes);
-
-                    Utils.SendAlertEmail(settings.email, deleteTasks);
+                    Utils.Log("Sending alert email.");
+                    Utils.SendAlertEmail(settings.email, toDelete);
                 }
             }
             else
                 Utils.Log("No tasks to delete");
         }
 
-        private static void ReadRSSFeeds(qbtService service, RSSSettings settings)
+        private static void ReadRSSFeeds(qbtService service, List<RSSSettings> settings)
         {
-            if (settings.rssUrls.Any())
-            {
+            if( settings != null && settings.Any() )
+            { 
                 Utils.Log("Processing RSS feed list...");
 
-                foreach (string uri in settings.rssUrls)
+                foreach (var rssFeed in settings)
                 {
-                    ReadRSSFeed(service, uri);
+                    ReadRSSFeed(service, rssFeed);
                 }
             }
             else
                 Utils.Log("No RSS feeds to process...");
         }
 
-        private static void ReadRSSFeed(qbtService service, string feedUrl)
+        private static void ReadRSSFeed(qbtService service, RSSSettings rssFeed)
         {
-            Utils.Log("Reading RSS feed for {0}", feedUrl);
+            Utils.Log("Reading RSS feed for {0}", rssFeed.url);
 
             try
             {
-                XmlReader reader = XmlReader.Create(feedUrl);
+                XmlReader reader = XmlReader.Create(rssFeed.url);
                 SyndicationFeed feed = SyndicationFeed.Load(reader);
                 reader.Close();
 

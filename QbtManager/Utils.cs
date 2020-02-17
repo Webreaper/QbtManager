@@ -12,8 +12,30 @@ using static QbtManager.qbtService;
 
 namespace QbtManager
 {
-    public class Utils
+    public static class Utils
     {
+        public static string ToHumanReadableString(this TimeSpan t)
+        {
+            if (t.TotalSeconds <= 1)
+            {
+                return $@"{t:s\.ff} seconds";
+            }
+            if (t.TotalMinutes <= 1)
+            {
+                return $@"{t:%s} seconds";
+            }
+            if (t.TotalHours <= 1)
+            {
+                return $@"{t:%m} minutes";
+            }
+            if (t.TotalDays <= 1)
+            {
+                return $@"{t:%h} hours";
+            }
+
+            return $@"{t:%d} days";
+        }
+
         public static DateTime getFromEpoch(long epoch)
         {
             var stamp = new DateTime(1970, 1, 1, 0, 0, 0).ToUniversalTime().AddMilliseconds(Convert.ToDouble(epoch));
@@ -38,14 +60,13 @@ namespace QbtManager
             try
             {
                 var mimeMsg = new MimeMessage();
-                mimeMsg.From.Add(new MailboxAddress("DS Manager", settings.fromaddress));
+                mimeMsg.From.Add(new MailboxAddress("QBT Manager", settings.fromaddress));
                 mimeMsg.To.Add(new MailboxAddress(settings.toname, settings.toaddress));
                 mimeMsg.Subject = "[Download Station] Download Cleanup";
                 mimeMsg.Body = new TextPart("plain") { Text = body };
 
                 using (var client = new SmtpClient())
                 {
-                    client.ServerCertificateValidationCallback = ServerCertificateValidation.CertValidationCallBack;
                     client.Timeout = 30 * 1000;
                     client.Connect(settings.smtpserver, settings.smtpport, false);
 
