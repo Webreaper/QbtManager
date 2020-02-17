@@ -11,29 +11,37 @@ Note - you will need to ensure auth is disabled for localhost etc. for QBitorrre
 3. Run, in a script or cron job. 
 
 ## Settings.json format/sample:
-`{
-  "qbt": {
-    "username": "admin",
-    "url": "http://192.168.1.30:8090/api/v2"
-  },
-  "cleanup": {
-    "maxDaysToKeep": 365,
-    "trackersToKeep": [
-      "myprivatetracker"
-    ]
-  },
-  "rss": {
-    "rssUrls": [
-      "https://sometracker.com/rss"
-    ]
-  },
-  "email": {
-    "smtpserver": "mail.mailhost.com",
-    "smtpport": 465,
-    "username": "user",
-    "password": "passwd",
-    "toaddress": "recipient@example.com",
-    "fromaddress": "sender@example.com",
-    "toname": "QBT Notifier"
+```
+  {
+    "logLocation": "./dscleanup.log",
+    "qbt": {
+      "username": "admin",
+      "url": "http://192.168.1.30:8090/api/v2"
+    },
+    "trackers": [
+      {
+        "tracker":"tvchaos",
+        "maxDaysToKeep" : -1,
+        "up_limit" : -1
+      },   
+      {
+        "tracker":"*",
+        "maxDaysToKeep" : 0,
+        "up_limit" : -1
+      }      
+    ],
+    "rssfeeds": [
+      {
+        "url" : "https://mytracker.com/rssfeed"
+      }
+    ],  "email": {
+      "smtpserver": "mail.somehost.co.uk",
+      "smtpport": 25,
+      "username": "joe@example.com",
+      "password": "sekritpassword",
+      "toaddress": "joe@example.com",
+      "fromaddress": "joe@example.com",
+      "toname": "Joe Smith"
+    }
   }
-}`
+```

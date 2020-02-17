@@ -6,6 +6,9 @@ using System.IO;
 
 namespace QbtManager
 {
+    /// <summary>
+    /// Wrapper for the QBitorrent service.
+    /// </summary>
     public class qbtService
     {
         private readonly RestClient client;
@@ -38,6 +41,10 @@ namespace QbtManager
             client = new RestClient(settings.url);
         }
 
+        /// <summary>
+        /// Authenticate and get an SID token
+        /// </summary>
+        /// <returns></returns>
         public bool SignIn()
         {
             token = null;
@@ -74,6 +81,10 @@ namespace QbtManager
             return false;
         }
 
+        /// <summary>
+        /// Get the list of torrents
+        /// </summary>
+        /// <returns></returns>
         public IList<Torrent> GetTasks()
         {
             var parms = new Dictionary<string, string>();
@@ -84,6 +95,11 @@ namespace QbtManager
             return data;
         }
 
+        /// <summary>
+        /// Delete a list of torrents via hash
+        /// </summary>
+        /// <param name="taskIds"></param>
+        /// <returns></returns>
         public bool DeleteTask( string[] taskIds )
         {
             var parms = new Dictionary<string, string>();
@@ -93,6 +109,12 @@ namespace QbtManager
             return ExecuteRequest("/torrents/delete", parms);
         }
 
+        /// <summary>
+        /// Download a torrent, given a URL, adding an optional category
+        /// </summary>
+        /// <param name="torrentUrl"></param>
+        /// <param name="category"></param>
+        /// <returns></returns>
         public bool DownloadTorrent(string torrentUrl, string category)
         {
             var parms = new Dictionary<string, string>();
@@ -102,6 +124,11 @@ namespace QbtManager
             return ExecuteCommand("/torrents/add", parms );
         }
 
+        /// <summary>
+        /// Pause a list of torrents, via hashes
+        /// </summary>
+        /// <param name="taskIds"></param>
+        /// <returns></returns>
         public bool PauseTask(string[] taskIds)
         {
             var parms = new Dictionary<string, string>();
@@ -129,6 +156,12 @@ namespace QbtManager
             return ExecuteCommand("/torrents/setUploadLimit", parms);
         }
 
+        /// <summary>
+        /// Execute a GET request, passing the Auth token
+        /// </summary>
+        /// <param name="requestMethod"></param>
+        /// <param name="parms"></param>
+        /// <returns></returns>
         public bool ExecuteRequest( string requestMethod, IDictionary<string, string> parms )
         {
             var request = new RestRequest(requestMethod, Method.GET);
@@ -143,6 +176,12 @@ namespace QbtManager
             return queryResult.StatusCode == HttpStatusCode.OK;
         }
 
+        /// <summary>
+        /// Execute a POST request, passing the Auth token
+        /// </summary>
+        /// <param name="requestMethod"></param>
+        /// <param name="parms"></param>
+        /// <returns></returns>
         public bool ExecuteCommand(string requestMethod, IDictionary<string, string> parms)
         {
             var request = new RestRequest(requestMethod, Method.POST);
@@ -157,6 +196,14 @@ namespace QbtManager
             return queryResult.StatusCode == HttpStatusCode.OK;
         }
 
+        /// <summary>
+        /// Generic REST method handler.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="requestMethod"></param>
+        /// <param name="parms"></param>
+        /// <param name="method"></param>
+        /// <returns></returns>
         public T MakeRestRequest<T>(string requestMethod, IDictionary<string, string> parms, Method method = Method.GET) where T : new()
         {
             var request = new RestRequest(requestMethod, method );
