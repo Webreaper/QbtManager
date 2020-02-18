@@ -12,6 +12,8 @@ Note - you will need to ensure auth is disabled for localhost etc. for QBitorrre
 3. Run, in a script or cron job. 
 
 ## Settings.json format/sample:
+
+This example uses a wildcard to stop all torrents once they complete, and set their upload limite to 30KB/s, except for those from the TVChaos tracker, which will be kept for 1 year and seeded with an unlimied upload speed.
 ```
   {
     "logLocation": "./dscleanup.log",
