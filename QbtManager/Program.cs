@@ -22,6 +22,8 @@ namespace QbtManager
         {
             Tracker tracker = null;
 
+            if (settings.trackers == null || !settings.trackers.Any())
+                return null;
 
             if (tracker == null)
                 tracker = settings.trackers.FirstOrDefault(x => task.magnet_uri.ToLower().Contains(x.tracker));
@@ -120,7 +122,7 @@ namespace QbtManager
             var toDelete = new List<Torrent>();
             var limits = new Dictionary<Torrent, int>();
 
-            foreach( var task in tasks )
+            foreach (var task in tasks)
             {
                 var tracker = FindTaskTracker(task, settings);
 
@@ -142,13 +144,15 @@ namespace QbtManager
                         }
                     }
                 }
+                else
+                    toKeep.Add(task);
             }
 
             if (limits.Any())
             {
                 var limitGroups = limits.GroupBy(x => x.Value, y => y.Key);
 
-                foreach (var x in limitGroups )
+                foreach (var x in limitGroups)
                 {
                     int limit = x.Key;
                     var hashes = x.Select(t => t.hash).ToArray();
