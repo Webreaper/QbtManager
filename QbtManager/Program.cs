@@ -164,13 +164,18 @@ namespace QbtManager
 
             if (toDelete.Any())
             {
-                Utils.Log("Tasks to delete:");
                 var deleteHashes = toDelete.Select(x => x.hash).ToArray();
 
                 if (settings.deleteTasks)
+                {
+                    Utils.Log($"Deleting {deleteHashes.Count()} tasks...");
                     service.DeleteTask(deleteHashes);
+                }
                 else
+                {
+                    Utils.Log($"Pausing {deleteHashes.Count()} tasks...");
                     service.PauseTask(deleteHashes);
+                }
 
                 if (settings.email != null)
                 {
@@ -179,7 +184,7 @@ namespace QbtManager
                 }
             }
             else
-                Utils.Log("No tasks to delete");
+                Utils.Log("No tasks to delete/pause.");
         }
 
         private static void ReadRSSFeeds(qbtService service, List<RSSSettings> settings)
