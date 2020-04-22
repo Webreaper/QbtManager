@@ -52,7 +52,17 @@ namespace QbtManager
             try
             {
                 CookieContainer cookies = new CookieContainer();
-                HttpWebRequest req = (HttpWebRequest)WebRequest.Create(settings.url + "/auth/login");
+                Uri url = new Uri(settings.url + "/auth/login");
+
+                if (!string.IsNullOrEmpty(settings.password))
+                {
+                    url = url.AddParameter("username", settings.username);
+                    url = url.AddParameter("password", settings.password);
+                }
+                else
+                    Utils.Log("No password specified - assuming local auth is disabled in QBT");
+
+                HttpWebRequest req = (HttpWebRequest)WebRequest.Create(url);
                 req.Method = "GET";
                 req.CookieContainer = cookies;
                 req.Accept = "application/json";

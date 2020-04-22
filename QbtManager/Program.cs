@@ -70,6 +70,8 @@ namespace QbtManager
         {
             var settingPath = args.Where(p => p.EndsWith(".json", StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
 
+            LogHandler.InitLogs();
+
             if (string.IsNullOrEmpty(settingPath))
                 settingPath = "Settings.json";
 
@@ -84,8 +86,6 @@ namespace QbtManager
                 string json = File.ReadAllText(settingPath);
 
                 var settings = Utils.deserializeJSON<Settings>(json);
-
-                LogHandler.InitLogs();
 
                 qbtService service = new qbtService(settings.qbt);
 
