@@ -17,7 +17,15 @@ and seeded with an unlimied upload speed. Trackers are processed in-order, so fo
 settings, specify the wildcard tracker last.
 
 Note that if `deleteTasks=true` then torrents will be deleted from QBT when they expire.
-If `deleteTasks=false`, torrents will be paused, but not deleted.
+If `deleteTasks=false`, torrents will be paused, but not deleted. 
+
+If `deleteFiles=true` then torrent content/files will be deleted when torrents are deleted.
+This has no effect if `deleteTasks=false`.
+
+The `deleteMessages` setting is a special filter for particular messages on a tracker. Any
+strings listed here will result in the torrent being deleted if the tracker message in QBT
+matches them. This can be particularly useful when a tracker drops a torrent - e.g., if it's
+been repacked, and the individual torrent is no longer valid. 
 
 The QBT password field is optional. If you leave it out, you will need to change the settings
 in QBT to include the subnet where this tool is running to be excluded from authentication.
@@ -26,6 +34,7 @@ in QBT to include the subnet where this tool is running to be excluded from auth
   {
     "logLocation": "./dscleanup.log",
     "deleteTasks": true,
+    "deleteFiles": false,
     "qbt": {
       "username": "admin",
       "password": "sekritpasswd",
@@ -35,7 +44,10 @@ in QBT to include the subnet where this tool is running to be excluded from auth
       {
         "tracker":"APrivateTracker",
         "maxDaysToKeep" : 365,
-        "up_limit" : -1
+        "up_limit" : -1,
+        "deleteMessages" : [
+          "unregistered torrent"
+        ] 
       },   
       {
         "tracker":"*",

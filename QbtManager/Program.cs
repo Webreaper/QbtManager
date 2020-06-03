@@ -91,6 +91,16 @@ namespace QbtManager
 
                 qbtService service = new qbtService(settings.qbt);
 
+                if (settings.deleteTasks)
+                {
+                    if (settings.deleteFiles)
+                        Utils.Log("Filtered torrents will be deleted with their content.");
+                    else
+                        Utils.Log("Filtered torrents will be deleted (files will not be deleted).");
+                }
+                else
+                    Utils.Log("Filtered torrents will be paused.");
+
                 Utils.Log("Signing in to QBittorrent.");
 
                 if (service.SignIn())
@@ -124,28 +134,34 @@ namespace QbtManager
 
             foreach (var task in tasks)
             {
+                bool keepTask = true;
                 var tracker = FindTaskTracker(task, settings);
 
                 if (tracker != null)
                 {
                     if (IsDeletable(task, tracker))
-                    {
-                        toDelete.Add(task);
-                        Utils.Log($" - Delete: {task}");
-                    }
-                    else
-                    {
-                        toKeep.Add(task);
-                        Utils.Log($" - Keep: {task}");
+                        keepTask = false;
 
-                        if (tracker.up_limit.HasValue && task.up_limit != tracker.up_limit)
-                        {
-                            limits[task] = tracker.up_limit.Value;
-                        }
+                    if (task.trackers != null && task.trackers.Any(x => tracker.deleteMessages.Contains(x.msg, StringComparer.OrdinalIgnoreCase)))
+                        keepTask = false;
+                }
+
+                if (keepTask)
+                {
+                    toKeep.Add(task);
+                    Utils.Log($" - Keep: {task}");
+
+                    if( tracker != null && tracker.up_limit.HasValue && task.up_limit != tracker.up_limit)
+                    {
+                        // Store the tracker limits.
+                        limits[task] = tracker.up_limit.Value;
                     }
                 }
                 else
-                    toKeep.Add(task);
+                {
+                    toDelete.Add(task);
+                    Utils.Log($" - Delete: {task}");
+                }
             }
 
             if (limits.Any())
@@ -164,12 +180,12 @@ namespace QbtManager
 
             if (toDelete.Any())
             {
-                var deleteHashes = toDelete.Select(x => x.hash).ToArray();
+                var deleteHashes = toDelete.Select(x => x.hash).Distinct().ToArray();
 
                 if (settings.deleteTasks)
                 {
                     Utils.Log($"Deleting {deleteHashes.Count()} tasks...");
-                    service.DeleteTask(deleteHashes);
+                    service.DeleteTask(deleteHashes, settings.deleteFiles);
                 }
                 else
                 {

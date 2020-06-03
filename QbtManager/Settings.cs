@@ -45,6 +45,8 @@ namespace QbtManager
         public int diskFileAgeBeforeDeleteMins = 15;
         [DataMember]
         public int? up_limit { get; set; }
+        [DataMember]
+        public List<string> deleteMessages { get; set; }
     }
 
     [DataContract]
@@ -69,5 +71,7 @@ namespace QbtManager
         public EmailSettings email { get; set; }
         [DataMember]
         public bool deleteTasks = false;
+        [DataMember]
+        public bool deleteFiles = false;
     }
 }

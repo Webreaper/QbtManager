@@ -15,6 +15,13 @@ namespace QbtManager
         private readonly QBittorrentSettings settings;
         private string token;
 
+        public class Tracker
+        {
+            public string url { get; set; }
+            public int status { get; set; }
+            public string msg { get; set; }
+        }
+
         public class Torrent 
         {
             public string hash { get; set; }  
@@ -26,6 +33,7 @@ namespace QbtManager
             public int up_limit { get; set; }
             public DateTime added_on { get; set; }
             public DateTime completed_on { get; set; }
+            public List<Tracker> trackers { get; set; }
 
             public override string ToString()
 			{
@@ -102,6 +110,15 @@ namespace QbtManager
             // Dont use ?filter=completed here - we'll filter ourselves.
             var data = MakeRestRequest<List<Torrent>>("/torrents/info", parms);
 
+            foreach( var torrent in data )
+            {
+                var torrentId = new Dictionary<string, string> { { "hash", torrent.hash } };
+
+                var track = MakeRestRequest<List<Tracker>>("/torrents/trackers", torrentId);
+
+                torrent.trackers = track;
+            }
+
             return data;
         }
 
@@ -110,12 +127,12 @@ namespace QbtManager
         /// </summary>
         /// <param name="taskIds"></param>
         /// <returns></returns>
-        public bool DeleteTask( string[] taskIds )
+        public bool DeleteTask( string[] taskIds, bool deleteFiles )
         {
             var parms = new Dictionary<string, string>();
 
             parms["hashes"] = string.Join("|", taskIds);
-            parms["deleteFiles"] = "false";
+            parms["deleteFiles"] = deleteFiles ? "true" : "false";
             return ExecuteRequest("/torrents/delete", parms);
         }
 
