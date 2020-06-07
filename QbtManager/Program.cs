@@ -124,6 +124,21 @@ namespace QbtManager
             }
         }
 
+        private static bool TrackerMsgIsDeletable( Torrent task, Tracker trackerSettings )
+        {
+            if (task.trackers == null || trackerSettings.deleteMessages == null )
+                return false;
+
+            var filterMsgs = trackerSettings.deleteMessages;
+
+            var torrentMsgs = task.trackers.Where(x => !String.IsNullOrEmpty(x.msg)).Select(x => x.msg);
+
+            if (torrentMsgs.Any(x => filterMsgs.Contains(x, StringComparer.OrdinalIgnoreCase)))
+                return true;
+
+            return false;
+        }
+
         private static void ProcessTorrents(qbtService service, IList<Torrent> tasks, Settings settings )
         {
             Utils.Log("Processing torrent list...");
@@ -142,7 +157,7 @@ namespace QbtManager
                     if (IsDeletable(task, tracker))
                         keepTask = false;
 
-                    if (task.trackers != null && task.trackers.Any(x => tracker.deleteMessages.Contains(x.msg, StringComparer.OrdinalIgnoreCase)))
+                    if( TrackerMsgIsDeletable( task, tracker ) )
                         keepTask = false;
                 }
 
