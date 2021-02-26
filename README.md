@@ -5,7 +5,8 @@
  * Do RSS for server-based (linux) QBitTorrent. QBT handles RSS on Windows, but not on Linux. So this will take a list of RSS URLs, and download all new torrents that are listed in them. Note that it will create a downloadhistory.json file to track snatched torrents so they're not repeatedly downloaded and added to QBT.
   
 ## To use:
-1. Copy onto your linux NAS.
+1. Copy the binaries from the latest [release] (https://github.com/Webreaper/QbtManager/releases/tag) to your linux NAS. 
+There's Linux and Windows binaries each in a zip file. 
 2. Create 'Settings.json' file in the same folder
 3. Run, in a script or cron job. 
 
