@@ -35,6 +35,8 @@ namespace QbtManager
             public string magnet_uri { get; set; }
             public string state { get; set; }
             public int up_limit { get; set; }
+            public float max_ratio { get; set; }
+            public int max_seeding_time { get; set; }
             public DateTime added_on { get; set; }
             public DateTime completed_on { get; set; }
             public List<Tracker> trackers { get; set; }
@@ -185,6 +187,24 @@ namespace QbtManager
             parms["limit"] = limitBytesPerSec.ToString();
 
             return ExecuteCommand("/torrents/setUploadLimit", parms);
+        }
+
+        /// <summary>
+        /// Sets the maximum ratio and seeding time for a list of hashes
+        /// </summary>
+        /// <param name="taskIds"></param>
+        /// <param name="maxRatio">Maximum Ratio, -2 = none, -1 = use global, other value = custom ratio per torrent</param>
+        /// <param name="maxSeedingTime">Maximum Seeding Time, -2 = none, -1 = use global, other value = minutes to seed this torrent</param>
+        /// <returns></returns>
+        public bool SetMaxLimits(string[] taskIds, float maxRatio, int maxSeedingTime)
+        {
+            var parms = new Dictionary<string, string>();
+
+            parms["hashes"] = string.Join("|", taskIds);
+            parms["ratioLimit"] = maxRatio.ToString();
+            parms["seedingTimeLimit"] = maxSeedingTime.ToString();
+            Utils.Log("Setting Limits to ratio " + parms["ratioLimit"] + " seeding time " + parms["seedingTimeLimit"] + " for " + taskIds.Length.ToString() + " tasks ");
+            return ExecuteCommand("/torrents/setShareLimits", parms);
         }
 
         /// <summary>
