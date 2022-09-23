@@ -26,12 +26,12 @@ namespace QBTManager.Logging
             logger = new LoggerConfiguration()
                 .MinimumLevel.ControlledBy(logLevel)
                 .WriteTo.Console(outputTemplate: template)
-                .WriteTo.File("QbtCleanup-.log", outputTemplate: template,
+                .WriteTo.File("QbtManager-.log", outputTemplate: template,
                                rollingInterval: RollingInterval.Day,
                                fileSizeLimitBytes: 104857600)
                 .CreateLogger();
 
-            logger.Information("=== QbtCleanup Log Started ===");
+            logger.Information("=== QbtManager Log Started ===");
             logger.Information("LogLevel: {0}", logLevel.MinimumLevel);
 
             return logger;

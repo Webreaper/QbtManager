@@ -1,7 +1,9 @@
-
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-Project("{5443830a-8922-4a66-8262-57c0c7ba860f}") = "QbtManager", "QbtManager\QbtManager.csproj", "{5866166b-9ae5-4079-8050-66becf2ad81a}"
+# Visual Studio Version 16
+VisualStudioVersion = 25.0.1704.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QbtManager", "QbtManager\QbtManager.csproj", "{34ABDE56-A0AC-4BC3-8830-9281605C1E8E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -9,9 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{5866166b-9ae5-4079-8050-66becf2ad81a}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5866166b-9ae5-4079-8050-66becf2ad81a}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5866166b-9ae5-4079-8050-66becf2ad81a}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5866166b-9ae5-4079-8050-66becf2ad81a}.Release|Any CPU.Build.0 = Release|Any CPU
+		{34ABDE56-A0AC-4BC3-8830-9281605C1E8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{34ABDE56-A0AC-4BC3-8830-9281605C1E8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{34ABDE56-A0AC-4BC3-8830-9281605C1E8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{34ABDE56-A0AC-4BC3-8830-9281605C1E8E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B3A4ECCE-2834-46E8-A65E-E7D697566BC1}
 	EndGlobalSection
 EndGlobal

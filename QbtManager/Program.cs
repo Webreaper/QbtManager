@@ -146,7 +146,6 @@ namespace QbtManager
             var toKeep = new List<Torrent>();
             var toDelete = new List<Torrent>();
             var limits = new Dictionary<Torrent, int>();
-            var maxLimits = new Dictionary<Torrent, (float,int)>(); // max ratio, seeding time. API requires they both get set at once
 
             foreach (var task in tasks)
             {
@@ -172,28 +171,6 @@ namespace QbtManager
                         // Store the tracker limits.
                         limits[task] = tracker.up_limit.Value;
                     }
-
-                    if (tracker != null && tracker.max_ratio.HasValue && task.max_ratio != tracker.max_ratio)
-                    {
-                        // Store the tracker limits.
-                        maxLimits[task] = (tracker.max_ratio.Value, task.max_seeding_time);
-                        // API call can't set just one have to set both
-                    }
-
-                    if (tracker != null && tracker.max_seeding_time.HasValue && task.max_seeding_time != tracker.max_seeding_time)
-                    {
-                        // Store the tracker limits.
-                        // API call can't set just one have to set both
-                        if (maxLimits.ContainsKey(task))
-                        {
-                            maxLimits[task] = (maxLimits[task].Item1, tracker.max_seeding_time.Value);
-                        }
-                        else
-                        {
-                            maxLimits[task] = (task.max_ratio, tracker.max_seeding_time.Value);
-                        }
-
-                    }
                 }
                 else
                 {
@@ -213,22 +190,6 @@ namespace QbtManager
 
                     if (!service.SetUploadLimit(hashes, limit))
                         Utils.Log($"Failed to set upload limits.");
-                }
-            }
-
-            if (maxLimits.Any())
-            {
-                var ratioGroups = maxLimits.GroupBy(x => x.Value, y => y.Key);
-
-                foreach (var x in ratioGroups)
-                {
-                    float ratio_limit = x.Key.Item1;
-                    int time_limit = x.Key.Item2;
-
-                    var hashes = x.Select(t => t.hash).ToArray();
-
-                    if (!service.SetMaxLimits(hashes, ratio_limit, time_limit))
-                        Utils.Log($"Failed to set max ratio and time limit.");
                 }
             }
 

@@ -3,6 +3,11 @@ using System.Collections.Generic;
 using RestSharp;
 using System.Net;
 using System.IO;
+using System.Text.Json;
+using System.Buffers;
+using System.Buffers.Text;
+using System.Diagnostics;
+using System.Text.Json.Serialization;
 
 namespace QbtManager
 {
@@ -13,7 +18,6 @@ namespace QbtManager
     {
         private readonly RestClient client;
         private readonly QBittorrentSettings settings;
-        private string token;
 
         public class Tracker
         {
@@ -31,8 +35,6 @@ namespace QbtManager
             public string magnet_uri { get; set; }
             public string state { get; set; }
             public int up_limit { get; set; }
-            public float max_ratio { get; set; }
-            public int max_seeding_time { get; set; }
             public DateTime added_on { get; set; }
             public DateTime completed_on { get; set; }
             public List<Tracker> trackers { get; set; }
@@ -48,7 +50,13 @@ namespace QbtManager
         public qbtService(QBittorrentSettings qbtSettings)
         {
             settings = qbtSettings;
-            client = new RestClient(settings.url);
+
+            var options = new RestClientOptions
+            {
+                CookieContainer = new CookieContainer(),
+                BaseUrl = new Uri( settings.url )
+            };
+            client = new RestClient(options);
         }
 
         /// <summary>
@@ -57,40 +65,31 @@ namespace QbtManager
         /// <returns></returns>
         public bool SignIn()
         {
-            token = null;
-
             try
             {
                 CookieContainer cookies = new CookieContainer();
                 Uri url = new Uri(settings.url + "/auth/login");
 
-                if (!string.IsNullOrEmpty(settings.password))
+                var request = new RestRequest("/auth/login", Method.Post);
+                request.AddParameter("Referer", "http://192.168.1.120:8090");  // url to the page I want to go
+
+                if (string.IsNullOrEmpty(settings.password))
                 {
-                    url = url.AddParameter("username", settings.username);
-                    url = url.AddParameter("password", settings.password);
+                    Utils.Log("No password specified - assuming local auth is disabled in QBT");
                 }
                 else
-                    Utils.Log("No password specified - assuming local auth is disabled in QBT");
-
-                HttpWebRequest req = (HttpWebRequest)WebRequest.Create(url);
-                req.Method = "GET";
-                req.CookieContainer = cookies;
-                req.Accept = "application/json";
-                req.UserAgent = "QBTCleanup";
-
-                HttpWebResponse response = (HttpWebResponse)req.GetResponse();
-
-                using (var reader = new StreamReader(response.GetResponseStream()))
                 {
-                    string result = reader.ReadToEnd();
+                    request.AddParameter("username", "admin");
+                    request.AddParameter("password", "adminadmin");
+                }
 
-                    var tokenCookie = response.Cookies["SID"];
-                    if( tokenCookie != null )
-                    {
-                        token = tokenCookie.Value;
-                        if (!string.IsNullOrEmpty(token))
-                            return true;
-                    }
+                var response = client.Execute(request);
+
+                var sessionCookie = response.Cookies.SingleOrDefault(x => x.Name == "SID");
+                if (sessionCookie != null)
+                {
+                    client.CookieContainer.Add(new Cookie(sessionCookie.Name, sessionCookie.Value, sessionCookie.Path, sessionCookie.Domain));
+                    return true;
                 }
             }
             catch( Exception ex )
@@ -112,13 +111,16 @@ namespace QbtManager
             // Dont use ?filter=completed here - we'll filter ourselves.
             var data = MakeRestRequest<List<Torrent>>("/torrents/info", parms);
 
-            foreach( var torrent in data )
+            if (data != null)
             {
-                var torrentId = new Dictionary<string, string> { { "hash", torrent.hash } };
+                foreach (var torrent in data)
+                {
+                    var torrentId = new Dictionary<string, string> { { "hash", torrent.hash } };
 
-                var track = MakeRestRequest<List<Tracker>>("/torrents/trackers", torrentId);
+                    var track = MakeRestRequest<List<Tracker>>("/torrents/trackers", torrentId);
 
-                torrent.trackers = track;
+                    torrent.trackers = track;
+                }
             }
 
             return data;
@@ -186,24 +188,6 @@ namespace QbtManager
         }
 
         /// <summary>
-        /// Sets the maximum ratio and seeding time for a list of hashes
-        /// </summary>
-        /// <param name="taskIds"></param>
-        /// <param name="maxRatio">Maximum Ratio, -2 = none, -1 = use global, other value = custom ratio per torrent</param>
-        /// <param name="maxSeedingTime">Maximum Seeding Time, -2 = none, -1 = use global, other value = minutes to seed this torrent</param>
-        /// <returns></returns>
-        public bool SetMaxLimits(string[] taskIds, float maxRatio, int maxSeedingTime)
-        {
-            var parms = new Dictionary<string, string>();
-
-            parms["hashes"] = string.Join("|", taskIds);
-            parms["ratioLimit"] = maxRatio.ToString();
-            parms["seedingTimeLimit"] = maxSeedingTime.ToString();
-            Utils.Log("Setting Limits to ratio " + parms["ratioLimit"] + " seeding time " + parms["seedingTimeLimit"] + " for " + taskIds.Length.ToString() + " tasks ");
-            return ExecuteCommand("/torrents/setShareLimits", parms);
-        }
-
-        /// <summary>
         /// Execute a GET request, passing the Auth token
         /// </summary>
         /// <param name="requestMethod"></param>
@@ -211,12 +195,10 @@ namespace QbtManager
         /// <returns></returns>
         public bool ExecuteRequest( string requestMethod, IDictionary<string, string> parms )
         {
-            var request = new RestRequest(requestMethod, Method.GET);
+            var request = new RestRequest(requestMethod, Method.Get);
 
             foreach (var kvp in parms)
                 request.AddParameter(kvp.Key, kvp.Value);
-
-            request.AddCookie("SID", token);
 
             var queryResult = client.Execute(request);
 
@@ -231,12 +213,10 @@ namespace QbtManager
         /// <returns></returns>
         public bool ExecuteCommand(string requestMethod, IDictionary<string, string> parms)
         {
-            var request = new RestRequest(requestMethod, Method.POST);
+            var request = new RestRequest(requestMethod, Method.Post);
             
             foreach (var kvp in parms)
                 request.AddParameter(kvp.Key, kvp.Value, ParameterType.GetOrPost);
-
-            request.AddCookie("SID", token);
 
             var queryResult = client.Execute(request);
 
@@ -251,14 +231,12 @@ namespace QbtManager
         /// <param name="parms"></param>
         /// <param name="method"></param>
         /// <returns></returns>
-        public T MakeRestRequest<T>(string requestMethod, IDictionary<string, string> parms, Method method = Method.GET) where T : new()
+        public T MakeRestRequest<T>(string requestMethod, IDictionary<string, string> parms, Method method = Method.Get) where T : new()
         {
             var request = new RestRequest(requestMethod, method );
 
             foreach (var kvp in parms)
                 request.AddParameter(kvp.Key, kvp.Value, ParameterType.GetOrPost);
-
-            request.AddCookie("SID", token);
 
             try
             {
@@ -272,7 +250,10 @@ namespace QbtManager
                     }
                     else
                     {
-                        var response = queryResult.Data;
+                        JsonSerializerOptions options = new JsonSerializerOptions();
+                        options.Converters.Add(new UnixToNullableDateTimeConverter());
+
+                        T response = JsonSerializer.Deserialize<T>(queryResult.Content, options);
 
                         if (response != null)
                         {
@@ -291,6 +272,30 @@ namespace QbtManager
             }
 
             return default(T);
+        }
+
+        public class UnixToNullableDateTimeConverter : JsonConverter<DateTime>
+        {
+            public override bool HandleNull => true;
+            public bool? IsFormatInSeconds { get; set; } = null;
+
+            public override DateTime Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+            {
+                if (reader.TryGetInt64(out var time))
+                {
+                    // if 'IsFormatInSeconds' is unspecified, then deduce the correct type based on whether it can be represented in the allowed .net DateTime range
+                    if (IsFormatInSeconds == true || IsFormatInSeconds == null && time > _unixMinSeconds && time < _unixMaxSeconds)
+                        return DateTimeOffset.FromUnixTimeSeconds(time).LocalDateTime;
+                    return DateTimeOffset.FromUnixTimeMilliseconds(time).LocalDateTime;
+                }
+
+                return DateTime.MinValue;
+            }
+
+            public override void Write(Utf8JsonWriter writer, DateTime value, JsonSerializerOptions options) => throw new NotSupportedException();
+
+            private static readonly long _unixMinSeconds = DateTimeOffset.MinValue.ToUnixTimeSeconds() - DateTimeOffset.UnixEpoch.ToUnixTimeSeconds(); // -62_135_596_800
+            private static readonly long _unixMaxSeconds = DateTimeOffset.MaxValue.ToUnixTimeSeconds() - DateTimeOffset.UnixEpoch.ToUnixTimeSeconds(); // 253_402_300_799
         }
     }
 }

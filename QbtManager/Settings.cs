@@ -43,17 +43,6 @@ namespace QbtManager
         public int maxDaysToKeep { get; set; }
         [DataMember]
         public int diskFileAgeBeforeDeleteMins = 15;
-        /// <summary>
-        /// -1 = no limit, -2 = global limit, other value = custom ratio value for this torrent
-        /// </summary>
-        [DataMember]
-        public float? max_ratio { get; set; }
-
-        /// <summary>
-        /// -1 = no limit, -2 = global limit, other value = minutes to seed for this torrent
-        /// </summary>
-        [DataMember]
-        public int? max_seeding_time { get; set; }
         [DataMember]
         public int? up_limit { get; set; }
         [DataMember]

@@ -1,0 +1,35 @@
+{
+    "logLocation": "./dscleanup.log",
+    "deleteTasks" :  false,
+    "qbt": {
+        "username": "admin",
+        "password": "adminadmin",
+        "url": "http://192.168.1.120:8090/api/v2"
+    },
+    "trackers": [
+        {
+            "tracker": "tvchaos",
+            "maxDaysToKeep": 365,
+            "deleteMessages" : [
+                "unregistered torrent"
+            ]
+        },
+        {
+            "tracker": "*",
+            "maxDaysToKeep": 0
+        }
+    ],
+    "rssfeeds": [
+        { "url": "https://tvchaosuk.com/rss/1516.U1P7Bhpd5mnEsXwDJtSk" }
+    ],
+  "email": {
+    "smtpserver": "mail3.gridhost.co.uk",
+    "smtpport": 465,
+    "username": "mark@otway.com",
+    "password": "BlueChicken0",
+    "toaddress": "mark@otway.com",
+    "fromaddress": "mark@otway.com",
+    "toname": "Mark Otway"
+  }
+}
+
