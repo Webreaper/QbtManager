@@ -3,7 +3,8 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
-# DB stuff
+Settings.json
+:wq# DB stuff
 *.db
 *.db-shm
 *.db-wal
