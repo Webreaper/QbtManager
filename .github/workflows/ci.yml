@@ -32,7 +32,7 @@ jobs:
       run: dotnet publish QbtManager.sln -c Release --runtime osx-x64 --self-contained -o artifacts/QbtManager-osx /p:PublishSingleFile=true /p:AssemblyVersion=1.0.${{ github.run_number }}
     
     - name: Zip the Win release
-      run: zip ./artifacts/QbtManager-win.zip ./artifacts/QbtManager-win/QbtManager.dll 
+      run: zip ./artifacts/QbtManager-win.zip ./artifacts/QbtManager-win/QbtManager.exe
 
     - name: Zip the OSX release
       run: zip ./artifacts/QbtManager-osx.zip ./artifacts/QbtManager-osx/QbtManager
