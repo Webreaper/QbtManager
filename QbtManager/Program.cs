@@ -197,8 +197,17 @@ namespace QbtManager
                 }
                 else
                 {
+                    if( ! settings.deleteTasks && task.state.StartsWith( "pause" ) )
+                    {
+                        Utils.Log($" - Already paused: {task}");
+
+                        // Nothing to do, so skip.
+                        continue;
+                    }
+
                     toDelete.Add(task);
-                    Utils.Log($" - Delete: {task}");
+                    var action = settings.deleteTasks ? "Delete" : "Pause";
+                    Utils.Log($" - {action}: {task}");
                 }
             }
 
@@ -234,7 +243,9 @@ namespace QbtManager
 
             if (toDelete.Any())
             {
-                var deleteHashes = toDelete.Select(x => x.hash).Distinct().ToArray();
+                var deleteHashes = toDelete.Select(x => x.hash)
+                                           .Distinct()
+                                           .ToArray();
 
                 if (settings.deleteTasks)
                 {

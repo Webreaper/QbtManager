@@ -139,7 +139,7 @@ namespace QbtManager
 
             parms["hashes"] = string.Join("|", taskIds);
             parms["deleteFiles"] = deleteFiles ? "true" : "false";
-            return ExecuteRequest("/torrents/delete", parms);
+            return ExecuteCommand("/torrents/delete", parms);
         }
 
         /// <summary>
@@ -167,7 +167,7 @@ namespace QbtManager
             var parms = new Dictionary<string, string>();
 
             parms["hashes"] = string.Join("|", taskIds);
-            return ExecuteRequest("/torrents/pause", parms);
+            return ExecuteCommand("/torrents/pause", parms);
         }
 
         /// <summary>
@@ -222,6 +222,11 @@ namespace QbtManager
 
             var queryResult = client.Execute(request);
 
+            if (queryResult.StatusCode != HttpStatusCode.OK)
+            {
+                Utils.Log($"ERROR: Request failed: {requestMethod}: {queryResult.ResponseStatus}");
+            }
+
             return queryResult.StatusCode == HttpStatusCode.OK;
         }
 
@@ -239,6 +244,11 @@ namespace QbtManager
                 request.AddParameter(kvp.Key, kvp.Value, ParameterType.GetOrPost);
 
             var queryResult = client.Execute(request);
+
+            if( queryResult.StatusCode != HttpStatusCode.OK )
+            {
+                Utils.Log($"ERROR: Command failed: {requestMethod}: {queryResult.ResponseStatus}");
+            }
 
             return queryResult.StatusCode == HttpStatusCode.OK;
         }
