@@ -59,7 +59,7 @@ jobs:
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./artifacts/QbtManager-win.zip
-        asset_name: QbtManager.dll
+        asset_name: QbtManager-win.zip
         asset_content_type: application/exe
 
     - name: Upload qbtmanager-linux
@@ -70,7 +70,7 @@ jobs:
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./artifacts/QbtManager-linux.zip
-        asset_name: QbtManager-linux
+        asset_name: QbtManager-linux.zip
         asset_content_type: application/exe
 
     - name: Upload qbtmanager-osx
@@ -81,6 +81,6 @@ jobs:
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./artifacts/QbtManager-osx.zip
-        asset_name: QbtManager-osx
+        asset_name: QbtManager-osx.zip
         asset_content_type: application/exe
 
