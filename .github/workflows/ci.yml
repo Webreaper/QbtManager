@@ -42,7 +42,7 @@ jobs:
         release_name: Release 1.0.${{ github.run_number }}
         draft: false
         
-    - name: Upload qbtmanager-x64.zip
+    - name: Upload qbtmanager-win
       if: ${{ github.event_name == 'push' }}
       uses: actions/upload-release-asset@v1.0.2
       env:
@@ -53,7 +53,7 @@ jobs:
         asset_name: QbtManager.dll
         asset_content_type: application/exe
 
-    - name: Upload cent-pack-convert-linux-x64.zip
+    - name: Upload qbtmanager-linux
       if: ${{ github.event_name == 'push' }}
       uses: actions/upload-release-asset@v1.0.2
       env:
@@ -61,10 +61,10 @@ jobs:
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./artifacts/QbtManager-linux/QbtManager
-        asset_name: QbtManager
+        asset_name: QbtManager-linux
         asset_content_type: application/exe
 
-    - name: Upload cent-pack-convert-osx-x64.zip
+    - name: Upload qbtmanager-osx
       if: ${{ github.event_name == 'push' }}
       uses: actions/upload-release-asset@v1.0.2
       env:
@@ -72,6 +72,6 @@ jobs:
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./artifacts/QbtManager-osx/QbtManager
-        asset_name: QbtManager
+        asset_name: QbtManager-osx
         asset_content_type: application/exe
 
