@@ -23,13 +23,13 @@ jobs:
       run: dotnet restore
 
     - name: Build win-x64
-      run: dotnet publish QbtManager.sln -c Release --runtime win-x64 --self-contained -o QbtManager-win /p:AssemblyVersion=1.0.${{ github.run_number }}
+      run: dotnet publish QbtManager.sln -c Release --runtime win-x64 --self-contained -o artifacts/QbtManager-win /p:AssemblyVersion=1.0.${{ github.run_number }}
       
     - name: Build linux-x64
-      run: dotnet publish QbtManager.sln -c Release --runtime linux-x64 --self-contained -o QbtManager-linux /p:AssemblyVersion=1.0.${{ github.run_number }}
+      run: dotnet publish QbtManager.sln -c Release --runtime linux-x64 --self-contained -o artifacts/QbtManager-linux /p:AssemblyVersion=1.0.${{ github.run_number }}
       
     - name: Build osx-x64
-      run: dotnet publish QbtManager.sln -c Release --runtime osx-x64 --self-contained -o QbtManager-osx /p:AssemblyVersion=1.0.${{ github.run_number }}
+      run: dotnet publish QbtManager.sln -c Release --runtime osx-x64 --self-contained -o artifacts/QbtManager-osx /p:AssemblyVersion=1.0.${{ github.run_number }}
     
     - name: Create the Release
       id: create_release
