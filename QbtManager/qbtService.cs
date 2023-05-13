@@ -73,7 +73,7 @@ namespace QbtManager
                 Uri url = new Uri(settings.url + "/auth/login");
 
                 var request = new RestRequest("/auth/login", Method.Post);
-                request.AddParameter("Referer", "http://192.168.1.120:8090");  // url to the page I want to go
+                request.AddParameter("Referer", settings.url);  // url to the page I want to go
 
                 if (string.IsNullOrEmpty(settings.password))
                 {
@@ -81,8 +81,8 @@ namespace QbtManager
                 }
                 else
                 {
-                    request.AddParameter("username", "admin");
-                    request.AddParameter("password", "adminadmin");
+                    request.AddParameter("username", settings.username);
+                    request.AddParameter("password", settings.password);
                 }
 
                 var response = client.Execute(request);
