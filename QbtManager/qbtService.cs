@@ -344,29 +344,24 @@ namespace QbtManager
             {
                 var queryResult = client.Execute<T>(request);
 
-                if (queryResult != null)
+                if (queryResult.StatusCode != HttpStatusCode.OK)
                 {
-                    if (queryResult.StatusCode != HttpStatusCode.OK)
-                    {
-                        Utils.Log("Error: {0} - {1}", queryResult.StatusCode, queryResult.Content);
-                    }
-                    else
-                    {
-                        JsonSerializerOptions options = new JsonSerializerOptions();
-                        options.Converters.Add(new UnixToNullableDateTimeConverter());
-
-                        T response = JsonSerializer.Deserialize<T>(queryResult.Content, options);
-
-                        if (response != null)
-                        {
-                            return response;
-                        }
-                        else
-                            Utils.Log("No response Data.");
-                    }
+                    Utils.Log("Error: {0} - {1}", queryResult.StatusCode, queryResult.Content);
                 }
                 else
-                    Utils.Log("No valid queryResult.");
+                {
+                    JsonSerializerOptions options = new JsonSerializerOptions();
+                    options.Converters.Add(new UnixToNullableDateTimeConverter());
+
+                    T response = JsonSerializer.Deserialize<T>(queryResult.Content, options);
+
+                    if (response != null)
+                    {
+                        return response;
+                    }
+                    else
+                        Utils.Log("No response Data.");
+                }
             }
             catch (Exception ex)
             {
