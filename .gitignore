@@ -371,3 +371,6 @@ MigrationBackup/
 *.db
 *.zip
 .DS_Store
+.idea/.idea.QbtManager/.idea/encodings.xml
+.idea/.idea.QbtManager/.idea/indexLayout.xml
+.idea/.idea.QbtManager/.idea/vcs.xml

@@ -18,6 +18,7 @@ namespace QbtManager
     {
         private readonly RestClient client;
         private readonly QBittorrentSettings settings;
+        private Version? qbtVersion;
 
         public class Tracker
         {
@@ -102,6 +103,21 @@ namespace QbtManager
             return false;
         }
 
+        public void GetQBTVersion()
+        {
+            // Dont use ?filter=completed here - we'll filter ourselves.
+            var versionStr = MakeRestRequest("/app/version", null);
+
+            if (!string.IsNullOrEmpty(versionStr))
+            {
+                if( versionStr.StartsWith("v") )
+                    versionStr = versionStr.Substring(1);
+                
+                qbtVersion = new Version(versionStr);
+                Utils.Log( $"QBT Version is: {qbtVersion}");
+            }
+        }
+        
         /// <summary>
         /// Get the list of torrents
         /// </summary>
@@ -164,10 +180,18 @@ namespace QbtManager
         /// <returns></returns>
         public bool PauseTask(string[] taskIds)
         {
+            // Handle the fact that pause => stop in QBT v5
+            var command = qbtVersion != null && qbtVersion.Major < 5 ? "pause" : "stop";
             var parms = new Dictionary<string, string>();
 
-            parms["hashes"] = string.Join("|", taskIds);
-            return ExecuteCommand("/torrents/pause", parms);
+            foreach (var chunk in taskIds.Chunk(30))
+            {
+                parms["hashes"] = string.Join("|", chunk);
+                if (!ExecuteCommand($"/torrents/{command}", parms))
+                    return false;
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -253,6 +277,7 @@ namespace QbtManager
             return queryResult.StatusCode == HttpStatusCode.OK;
         }
 
+        
         /// <summary>
         /// Generic REST method handler.
         /// </summary>
@@ -261,13 +286,60 @@ namespace QbtManager
         /// <param name="parms"></param>
         /// <param name="method"></param>
         /// <returns></returns>
-        public T MakeRestRequest<T>(string requestMethod, IDictionary<string, string> parms, Method method = Method.Get) where T : new()
+        public string MakeRestRequest(string requestMethod, IDictionary<string, string>? parms)
+        {
+            var request = new RestRequest(requestMethod, Method.Get );
+
+            if (parms != null)
+            {
+                foreach (var kvp in parms)
+                    request.AddParameter(kvp.Key, kvp.Value, ParameterType.GetOrPost);
+            }
+            
+            try
+            {
+                var queryResult = client.Execute<string>(request);
+
+                if (queryResult != null)
+                {
+                    if (queryResult.StatusCode != HttpStatusCode.OK)
+                    {
+                        Utils.Log("Error: {0} - {1}", queryResult.StatusCode, queryResult.Content);
+                    }
+                    else
+                    {
+                        return queryResult.Content;
+                    }
+                }
+                else
+                    Utils.Log("No valid queryResult.");
+            }
+            catch (Exception ex)
+            {
+                Utils.Log("Exception: {0}: {1}", ex.Message, ex);
+            }
+
+            return string.Empty;
+        }
+
+        /// <summary>
+        /// Generic REST method handler.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="requestMethod"></param>
+        /// <param name="parms"></param>
+        /// <param name="method"></param>
+        /// <returns></returns>
+        public T MakeRestRequest<T>(string requestMethod, IDictionary<string, string>? parms, Method method = Method.Get)
         {
             var request = new RestRequest(requestMethod, method );
 
-            foreach (var kvp in parms)
-                request.AddParameter(kvp.Key, kvp.Value, ParameterType.GetOrPost);
-
+            if (parms != null)
+            {
+                foreach (var kvp in parms)
+                    request.AddParameter(kvp.Key, kvp.Value, ParameterType.GetOrPost);
+            }
+            
             try
             {
                 var queryResult = client.Execute<T>(request);

@@ -105,6 +105,8 @@ namespace QbtManager
 
                 if (service.SignIn())
                 {
+                    service.GetQBTVersion();
+                    
                     Utils.Log("Getting Seeding Task list and mapping trackers...");
                     var tasks = service.GetTasks()
                                        .OrderBy(x => x.name)
